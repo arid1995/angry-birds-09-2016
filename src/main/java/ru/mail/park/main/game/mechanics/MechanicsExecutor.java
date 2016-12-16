@@ -8,6 +8,7 @@ import ru.mail.park.main.game.gamesession.LobbySessionService;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
+import java.time.Clock;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -19,10 +20,14 @@ public class MechanicsExecutor implements Runnable {
     @Autowired
     private LobbySessionService lobby;
 
+    private final long TICK = 20;
+
     private int position = 0;
     private int end = 1000;
     private int begin = 0;
     private int direction = 1;
+
+    private Clock clock = Clock.systemDefaultZone();
 
     private Executor tickExecutor = Executors.newSingleThreadExecutor();
 
@@ -31,20 +36,17 @@ public class MechanicsExecutor implements Runnable {
         tickExecutor.execute(this);
     }
 
+    @SuppressWarnings("InfiniteLoopStatement")
     @Override
     public void run() {
         while (true) {
+            final long before = clock.millis();
             try {
-                for (WebSocketSession session : lobby.getSessions()) {
-                    session.sendMessage(new TextMessage("{\"position\":" + position + '}'));
-                }
-                Thread.sleep(20);
 
-                if (position > end) direction = -1;
-                if (position < begin) direction = 1;
+                final long after = clock.millis();
 
-                position += 3 * direction;
-            } catch (InterruptedException|IOException ex) {
+                Thread.sleep(TICK - (after - before));
+            } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }
         }
