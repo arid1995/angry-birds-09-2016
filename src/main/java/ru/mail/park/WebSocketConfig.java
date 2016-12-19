@@ -1,5 +1,6 @@
 package ru.mail.park;
 
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
@@ -11,6 +12,7 @@ import javax.validation.constraints.NotNull;
 /**
  * Created by farid on 12.12.16.
  */
+@AutoConfigureAfter
 @EnableWebSocket
 public class WebSocketConfig implements WebSocketConfigurer {
 
@@ -27,6 +29,4 @@ public class WebSocketConfig implements WebSocketConfigurer {
                 .addInterceptors(new HttpSessionHandshakeInterceptor())
                 .setAllowedOrigins("*");
     }
-
 }
-

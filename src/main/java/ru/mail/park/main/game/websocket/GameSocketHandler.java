@@ -8,11 +8,11 @@ import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
-import ru.mail.park.main.game.gamesession.LobbySessionService;
-import ru.mail.park.services.AccountService;
+import ru.mail.park.main.game.Utils;
+import ru.mail.park.main.game.gamesession.GameUser;
+import ru.mail.park.main.game.gamesession.UserPool;
 
 import javax.naming.AuthenticationException;
-import javax.validation.constraints.NotNull;
 import java.io.IOException;
 
 /**
@@ -24,17 +24,33 @@ public class GameSocketHandler extends TextWebSocketHandler {
     private final ObjectMapper mapper = new ObjectMapper();
 
     @Autowired
-    private LobbySessionService lobby;
+    Utils utils;
+
+    @Autowired
+    UserPool pool;
+
+    @Autowired
+    MessageContainer messageContainer;
 
     @Override
     public void afterConnectionEstablished(WebSocketSession webSocketSession) throws AuthenticationException {
-        lobby.getSessions().add(webSocketSession);
     }
 
+    @SuppressWarnings("OverlyBroadCatchBlock")
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws AuthenticationException {
         try {
-            session.sendMessage(new TextMessage("Hi yourself"));
+            Message msg = mapper.readValue(message.getPayload(), Message.class);
+
+            if (msg.getType().equals("ready")) {
+                final GameUser user = mapper.readValue(msg.getData(), GameUser.class);
+                user.setSession(session);
+                session.sendMessage(new TextMessage(utils.buildResponse("confirmRequest", mapper.createObjectNode())));
+                pool.addUser(user);
+                return;
+            }
+
+            messageContainer.addMessage(msg);
         } catch (IOException ex) {
             ex.printStackTrace();
         }
@@ -48,7 +64,6 @@ public class GameSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionClosed(WebSocketSession webSocketSession, CloseStatus closeStatus) throws Exception {
-            lobby.getSessions().remove(webSocketSession);
     }
 
     @Override

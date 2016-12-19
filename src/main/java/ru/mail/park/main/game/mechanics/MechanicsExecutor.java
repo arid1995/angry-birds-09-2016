@@ -2,12 +2,8 @@ package ru.mail.park.main.game.mechanics;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.socket.TextMessage;
-import org.springframework.web.socket.WebSocketSession;
-import ru.mail.park.main.game.gamesession.LobbySessionService;
 
 import javax.annotation.PostConstruct;
-import java.io.IOException;
 import java.time.Clock;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -18,8 +14,7 @@ import java.util.concurrent.Executors;
 @Service
 public class MechanicsExecutor implements Runnable {
     @Autowired
-    private LobbySessionService lobby;
-
+    private Mechanics mechanics;
     private final long TICK = 20;
 
     private int position = 0;
@@ -42,9 +37,8 @@ public class MechanicsExecutor implements Runnable {
         while (true) {
             final long before = clock.millis();
             try {
-
+                mechanics.handle();
                 final long after = clock.millis();
-
                 Thread.sleep(TICK - (after - before));
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
