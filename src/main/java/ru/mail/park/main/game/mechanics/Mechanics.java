@@ -10,6 +10,9 @@ import ru.mail.park.main.game.gamesession.GameRooms;
 import ru.mail.park.main.game.gamesession.GameUser;
 import ru.mail.park.main.game.gamesession.Room;
 import ru.mail.park.main.game.gamesession.UserPool;
+import ru.mail.park.main.game.mechanics.requests.FieldState;
+import ru.mail.park.main.game.mechanics.requests.TurnDone;
+import ru.mail.park.main.game.websocket.Message;
 import ru.mail.park.main.game.websocket.MessageContainer;
 
 import java.io.IOException;
@@ -19,6 +22,7 @@ import java.io.IOException;
  */
 @Service
 public class Mechanics {
+    ObjectMapper mapper = new ObjectMapper();
     @Autowired
     private UserPool pool;
     @Autowired
@@ -26,47 +30,60 @@ public class Mechanics {
     @Autowired
     private Utils utils;
     @Autowired
-    GameRooms rooms;
-    ObjectMapper mapper = new ObjectMapper();
+    private GameRooms rooms;
 
-
+    @SuppressWarnings("OverlyBroadCatchBlock")
     public void handle() {
-        createSessions();
-    }
-
-    private void createSessions() {
-        GameUser user1;
-        GameUser user2 = null;
-
-        while ((user1 = pool.getUser()) != null) {
-            user2 = pool.getUser();
-
-            if (user2 == null) {
-                pool.addUser(user1);
-                break;
-            }
-
-            final Room room = new Room(user1, user2);
-            rooms.addRoom(room);
-
-            final ObjectNode responseForFirst = mapper.createObjectNode();
-            final ObjectNode responseForSecond = mapper.createObjectNode();
-
-            responseForFirst.put("name", user2.getUsername())
-                    .put("turn", true)
-                    .put("room", room.getId());
-
-            responseForSecond.put("name", user1.getUsername())
-                    .put("turn", false)
-                    .put("room", room.getId());
-
+        rooms.createRooms();
+        Message message;
+        while ((message = container.getMessage()) != null) {
             try {
-                user1.getSession().sendMessage(new TextMessage(utils.buildResponse("opponentFound", responseForFirst)));
-                user2.getSession().sendMessage(new TextMessage(utils.buildResponse("opponentFound", responseForSecond)));
+                if (message.getType().equals("fieldState")) {
+                    FieldState state = mapper.readValue(message.getData(), FieldState.class);
+                    final Room room = rooms.getRooms().get(state.getRoom());
 
+                    if(room.getUser1().getTurn()) {
+                        room.getUser2().getSession().sendMessage(new TextMessage(utils.buildResponse("fieldState",
+                                state.getObjects())));
+                        return;
+                    }
+
+                    room.getUser1().getSession().sendMessage(new TextMessage(utils.buildResponse("fieldState",
+                            state.getObjects())));
+                }
+
+                if (message.getType().equals("done")) {
+                    final TurnDone done = mapper.readValue(message.getData(), TurnDone.class);
+                    final Room room = rooms.getRooms().get(done.getRoom());
+                    if(room.getUser1().getTurn()) {
+                        room.getUser1().setTurn(false);
+                        room.getUser2().setTurn(true);
+
+                        room.getUser1().getSession().sendMessage(new TextMessage(utils.buildResponse("event",
+                                mapper.createObjectNode().put("turn", false))));
+
+                        room.getUser2().getSession().sendMessage(new TextMessage(utils.buildResponse("event",
+                                mapper.createObjectNode().put("turn", true))));
+                        return;
+                    }
+
+                    room.getUser1().setTurn(true);
+                    room.getUser2().setTurn(false);
+
+                    room.getUser1().getSession().sendMessage(new TextMessage(utils.buildResponse("event",
+                            mapper.createObjectNode().put("turn", true))));
+
+                    room.getUser2().getSession().sendMessage(new TextMessage(utils.buildResponse("event",
+                            mapper.createObjectNode().put("turn", false))));
+
+                }
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
         }
+    }
+
+    private void createRooms() {
+
     }
 }

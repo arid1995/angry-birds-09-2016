@@ -11,6 +11,10 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class MessageContainer<T> {
     private ConcurrentLinkedQueue<Message> messages;
 
+    public MessageContainer() {
+        messages = new ConcurrentLinkedQueue<>();
+    }
+
     public void addMessage(Message message) {
         messages.add(message);
     }

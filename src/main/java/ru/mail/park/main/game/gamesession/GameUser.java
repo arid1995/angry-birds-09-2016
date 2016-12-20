@@ -16,6 +16,8 @@ public class GameUser {
     private String username;
     private GameUser opponent;
     private WebSocketSession session;
+    private Room room;
+    private boolean turn;
 
     public GameUser() {}
 
@@ -40,6 +42,14 @@ public class GameUser {
         return username;
     }
 
+    public Room getRoom() {
+        return room;
+    }
+
+    public boolean getTurn() {
+        return turn;
+    }
+
     public void setOpponent(GameUser opponent) {
         this.opponent = opponent;
     }
@@ -54,5 +64,13 @@ public class GameUser {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public void setRoom(Room room) {
+        this.room = room;
+    }
+
+    public void setTurn(boolean turn) {
+        this.turn = turn;
     }
 }

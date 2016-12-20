@@ -24,4 +24,17 @@ public class Utils {
             return null;
         }
     }
+
+    public String buildResponse(String type, String data) {
+
+        final ObjectNode response = mapper.createObjectNode();
+        response.put("type", type);
+        response.put("data", data);
+        try {
+            return mapper.writeValueAsString(response);
+        } catch (JsonProcessingException ex) {
+            ex.printStackTrace();
+            return null;
+        }
+    }
 }
