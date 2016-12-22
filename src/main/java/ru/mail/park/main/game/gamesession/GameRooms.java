@@ -76,12 +76,13 @@ public class GameRooms {
                 user2.getSession().sendMessage(new TextMessage(utils.buildResponse("opponentFound", responseForSecond)));
 
             } catch (IOException ex) {
+
                 ex.printStackTrace();
             }
         }
     }
 
-    public void deleteRooms() {
-        // TODO
+    public void deleteRoom(Long id) {
+        rooms.remove(id);
     }
 }

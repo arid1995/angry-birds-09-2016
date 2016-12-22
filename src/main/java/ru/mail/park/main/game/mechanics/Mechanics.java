@@ -36,11 +36,16 @@ public class Mechanics {
     public void handle() {
         rooms.createRooms();
         Message message;
+        Long deffectiveRoom = null;
         while ((message = container.getMessage()) != null) {
             try {
                 if (message.getType().equals("fieldState")) {
                     FieldState state = mapper.readValue(message.getData(), FieldState.class);
                     final Room room = rooms.getRooms().get(state.getRoom());
+
+                    if (room == null) continue;
+
+                    deffectiveRoom = room.getId();
 
                     if(room.getUser1().getTurn()) {
                         room.getUser2().getSession().sendMessage(new TextMessage(utils.buildResponse("fieldState",
@@ -78,6 +83,7 @@ public class Mechanics {
 
                 }
             } catch (IOException ex) {
+                rooms.deleteRoom(deffectiveRoom);
                 ex.printStackTrace();
             }
         }

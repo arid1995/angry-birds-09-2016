@@ -39,7 +39,10 @@ public class MechanicsExecutor implements Runnable {
             try {
                 mechanics.handle();
                 final long after = clock.millis();
-                Thread.sleep(TICK - (after - before));
+
+                if (after - before <= TICK) {
+                    Thread.sleep(TICK - (after - before));
+                }
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }

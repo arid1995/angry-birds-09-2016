@@ -40,6 +40,7 @@ public class GameSocketHandler extends TextWebSocketHandler {
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws AuthenticationException {
         try {
+            System.out.println(message.getPayload());
             Message msg = mapper.readValue(message.getPayload(), Message.class);
 
             if (msg.getType().equals("ready")) {
@@ -47,7 +48,6 @@ public class GameSocketHandler extends TextWebSocketHandler {
                 user.setSession(session);
                 session.sendMessage(new TextMessage(utils.buildResponse("confirmRequest", mapper.createObjectNode())));
                 pool.addUser(user);
-                return;
             }
 
             messageContainer.addMessage(msg);

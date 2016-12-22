@@ -16,6 +16,7 @@ public class Room {
     public Room(@NotNull GameUser user1, @NotNull GameUser user2) {
         this.user1 = user1;
         this.user2 = user2;
+        System.out.println("room created");
     }
 
     public Long getId() {

@@ -1,5 +1,6 @@
 package ru.mail.park.main.game.gamesession;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.Session;
 import org.springframework.web.socket.WebSocketSession;
 
@@ -14,9 +15,13 @@ public class GameUser {
 
     @NotNull
     private String username;
+    @JsonIgnore
     private GameUser opponent;
+    @JsonIgnore
     private WebSocketSession session;
+    @JsonIgnore
     private Room room;
+    @JsonIgnore
     private boolean turn;
 
     public GameUser() {}
