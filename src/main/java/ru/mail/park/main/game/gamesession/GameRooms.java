@@ -42,7 +42,7 @@ public class GameRooms {
 
     public void createRooms() {
         GameUser user1;
-        GameUser user2 = null;
+        GameUser user2;
 
         while ((user1 = pool.getUser()) != null) {
             user2 = pool.getUser();
@@ -59,6 +59,8 @@ public class GameRooms {
             user2.setRoom(room);
             user1.setTurn(true);
             user2.setTurn(false);
+            user1.setOpponent(user2);
+            user2.setOpponent(user1);
 
             final ObjectNode responseForFirst = mapper.createObjectNode();
             final ObjectNode responseForSecond = mapper.createObjectNode();

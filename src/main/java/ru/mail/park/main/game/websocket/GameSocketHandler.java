@@ -9,11 +9,13 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 import ru.mail.park.main.game.Utils;
+import ru.mail.park.main.game.gamesession.GameRooms;
 import ru.mail.park.main.game.gamesession.GameUser;
 import ru.mail.park.main.game.gamesession.UserPool;
 
 import javax.naming.AuthenticationException;
 import java.io.IOException;
+import java.util.HashMap;
 
 /**
  * Created by farid on 13.12.16.
@@ -30,6 +32,11 @@ public class GameSocketHandler extends TextWebSocketHandler {
     UserPool pool;
 
     @Autowired
+    GameRooms rooms;
+
+    HashMap<String, GameUser> connectedUsers = new HashMap<>();
+
+    @Autowired
     MessageContainer messageContainer;
 
     @Override
@@ -40,7 +47,6 @@ public class GameSocketHandler extends TextWebSocketHandler {
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws AuthenticationException {
         try {
-            System.out.println(message.getPayload());
             Message msg = mapper.readValue(message.getPayload(), Message.class);
 
             if (msg.getType().equals("ready")) {
@@ -48,6 +54,7 @@ public class GameSocketHandler extends TextWebSocketHandler {
                 user.setSession(session);
                 session.sendMessage(new TextMessage(utils.buildResponse("confirmRequest", mapper.createObjectNode())));
                 pool.addUser(user);
+                connectedUsers.put(session.getId(), user);
             }
 
             messageContainer.addMessage(msg);
@@ -64,6 +71,19 @@ public class GameSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionClosed(WebSocketSession webSocketSession, CloseStatus closeStatus) throws Exception {
+        final GameUser disconnectedUser = connectedUsers.get(webSocketSession.getId());
+
+        connectedUsers.remove(webSocketSession.getId());
+        pool.removeUser(disconnectedUser);
+
+        final GameUser opponent = disconnectedUser.getOpponent();
+
+        rooms.deleteRoom(disconnectedUser.getRoom().getId());
+
+        if (opponent != null) {
+            opponent.getSession().sendMessage(new TextMessage(utils.buildResponse("trouble", "disconnected")));
+            pool.addUser(disconnectedUser.getOpponent());
+        }
     }
 
     @Override

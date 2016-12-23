@@ -26,4 +26,8 @@ public class UserPool {
     public ConcurrentLinkedQueue<GameUser> getUsers() {
         return users;
     }
+
+    public void removeUser(GameUser user) {
+        users.remove(user);
+    }
 }
