@@ -78,11 +78,15 @@ public class GameSocketHandler extends TextWebSocketHandler {
 
         final GameUser opponent = disconnectedUser.getOpponent();
 
-        rooms.deleteRoom(disconnectedUser.getRoom().getId());
+        if(disconnectedUser.getRoom() != null) {
+            rooms.deleteRoom(disconnectedUser.getRoom().getId());
+        }
 
         if (opponent != null) {
             opponent.getSession().sendMessage(new TextMessage(utils.buildResponse("trouble", "disconnected")));
             pool.addUser(disconnectedUser.getOpponent());
+            disconnectedUser.setOpponent(null);
+            opponent.setOpponent(null);
         }
     }
 

@@ -79,6 +79,7 @@ public class RegistrationController {
             final ObjectNode response = mapper.createObjectNode();
 
             response.put("id", user.getUserId());
+            response.put("login", user.getLogin());
 
             return ResponseEntity.ok(response);
         }
